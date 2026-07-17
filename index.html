@@ -375,9 +375,11 @@ Responde SOLO con JSON válido sin markdown ni backticks adicionales:
       body: JSON.stringify({ pdfBase64, prompt })
     });
 
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' — error en el servidor');
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    if (!res.ok || data.error) {
+      const msg = (data && data.error) ? data.error : ('HTTP ' + res.status);
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
 
     const rawText = data.content[0].text.trim();
     // Extraer solo el objeto JSON aunque Claude agregue texto alrededor
